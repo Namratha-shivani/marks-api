@@ -5,11 +5,7 @@ from typing import List
 
 app = FastAPI()
 
-# Load marks data once on startup
-with open("q-vercel-python.json") as f:
-    marks_data = json.load(f)
-
-# Enable CORS so any origin can access the API
+# Enable CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,8 +13,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Load list of student records from JSON file
+with open("q-vercel-python.json") as f:
+    students_list = json.load(f)
+
+# Convert to a dictionary: { "name": marks }
+marks_data = {student["name"]: student["marks"] for student in students_list}
+
 @app.get("/api")
 def get_marks(name: List[str] = Query(...)):
-    # For each name requested, get their marks or None if not found
-    results = [marks_data.get(n, None) for n in name]
-    return {"marks": results}
+    # Retrieve marks in order of query
+    return {"marks": [marks_data.get(n, None) for n in name]}
